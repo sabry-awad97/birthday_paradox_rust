@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::io;
+use std::io::{self, Write};
 
 use chrono::{Datelike, Duration, NaiveDate};
 use rand::distributions::Uniform;
@@ -73,20 +73,10 @@ impl BirthdayParadox {
         None
     }
 
-    fn get_input() -> (usize, usize) {
-        println!("Enter the number of people: ");
-
-        let mut number_of_people = String::new();
-        io::stdin().read_line(&mut number_of_people).unwrap();
-        let number_of_people = number_of_people.trim().parse().unwrap();
-
-        println!("Enter the number of simulations: ");
-
-        let mut number_of_simulations = String::new();
-        io::stdin().read_line(&mut number_of_simulations).unwrap();
-        let number_of_simulations = number_of_simulations.trim().parse().unwrap();
-
-        (number_of_people, number_of_simulations)
+    fn run_simulation(&self) -> bool {
+        let birthdays = self.generate_birthdays();
+        let matches = self.get_match(&birthdays);
+        matches.is_some()
     }
 
     fn run_simulations(&self, times: usize) -> (usize, f64) {
@@ -95,8 +85,7 @@ impl BirthdayParadox {
             if i % 10000 == 0 {
                 println!("{} simulations run...", i);
             }
-            let birthdays = self.generate_birthdays();
-            if self.get_match(&birthdays).is_some() {
+            if self.run_simulation() {
                 match_count += 1;
             }
         }
@@ -116,12 +105,28 @@ simulations) to explore this concept.
 (It's not actually a paradox, it's just a surprising result.)"
     );
 
-    let (number_of_people, number_of_simulations) = BirthdayParadox::get_input();
+    println!("Enter the number of people: ");
+
+    let mut number_of_people = String::new();
+    io::stdin().read_line(&mut number_of_people).unwrap();
+    let number_of_people = number_of_people.trim().parse().unwrap();
+
     let paradox = BirthdayParadox::new(number_of_people);
     let birthdays = paradox.generate_birthdays();
     paradox.display_birthdays(&birthdays);
 
     paradox.display_results(paradox.get_match(&birthdays));
+
+    let number_of_simulations = 10_000;
+    println!(
+        "Generating {} random birthdays {} times...",
+        number_of_people, number_of_simulations
+    );
+
+    print!("Press Enter to begin... ");
+    io::stdout().flush().unwrap();
+    io::stdin().read_line(&mut String::new()).unwrap();
+
     let (sim_match, probability) = paradox.run_simulations(number_of_simulations);
 
     println!(

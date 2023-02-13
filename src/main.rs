@@ -117,7 +117,7 @@ simulations) to explore this concept.
 
     paradox.display_results(paradox.get_match(&birthdays));
 
-    let number_of_simulations = 10_000;
+    let number_of_simulations = 100_000;
     println!(
         "Generating {} random birthdays {} times...",
         number_of_people, number_of_simulations

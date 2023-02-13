@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+use std::io;
+
 use chrono::{Datelike, Duration, NaiveDate};
 use rand::distributions::Uniform;
 
@@ -58,17 +61,32 @@ impl BirthdayParadox {
     }
 
     fn get_match(&self, birthdays: &[NaiveDate]) -> Option<NaiveDate> {
-        let unique = birthdays.iter().collect::<std::collections::HashSet<_>>();
-        if unique.len() == self.number_of_birthdays {
-            return None;
-        }
-        for birthday in birthdays.iter() {
-            let count = birthdays.iter().filter(|&b| b == birthday).count();
-            if count > 1 {
+        let mut birthday_counts = HashMap::new();
+        for birthday in birthdays {
+            let count = birthday_counts.entry(birthday).or_insert(0);
+            *count += 1;
+            if *count >= 2 {
                 return Some(*birthday);
             }
         }
+
         None
+    }
+
+    fn get_input() -> (usize, usize) {
+        println!("Enter the number of people: ");
+
+        let mut number_of_people = String::new();
+        io::stdin().read_line(&mut number_of_people).unwrap();
+        let number_of_people = number_of_people.trim().parse().unwrap();
+
+        println!("Enter the number of simulations: ");
+
+        let mut number_of_simulations = String::new();
+        io::stdin().read_line(&mut number_of_simulations).unwrap();
+        let number_of_simulations = number_of_simulations.trim().parse().unwrap();
+
+        (number_of_people, number_of_simulations)
     }
 
     fn run_simulations(&self, times: usize) -> (usize, f64) {
@@ -98,18 +116,17 @@ simulations) to explore this concept.
 (It's not actually a paradox, it's just a surprising result.)"
     );
 
-    let number_of_birthdays = 23;
-    let birthday_paradox = BirthdayParadox::new(number_of_birthdays);
-    let birthdays = birthday_paradox.generate_birthdays();
-    birthday_paradox.display_birthdays(&birthdays);
-    let simulations = 100_000;
+    let (number_of_people, number_of_simulations) = BirthdayParadox::get_input();
+    let paradox = BirthdayParadox::new(number_of_people);
+    let birthdays = paradox.generate_birthdays();
+    paradox.display_birthdays(&birthdays);
 
-    birthday_paradox.display_results(birthday_paradox.get_match(&birthdays));
-    let (sim_match, probability) = birthday_paradox.run_simulations(simulations);
+    paradox.display_results(paradox.get_match(&birthdays));
+    let (sim_match, probability) = paradox.run_simulations(number_of_simulations);
 
     println!(
         "Out of {} simulations of {}, people, there was a",
-        simulations, number_of_birthdays
+        number_of_simulations, number_of_people
     );
     println!(
         "matching birthday in that group {} times. This means",
